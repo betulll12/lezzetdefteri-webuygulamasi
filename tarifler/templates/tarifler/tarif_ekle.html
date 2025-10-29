@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>Yeni Tarif Ekle</h1>
+    
+    <form method="post">
+        {% csrf_token %} 
+        
+        {{ form.as_p }} 
+        
+        <button type="submit">Tarifi Kaydet</button>
+    </form>
+
+    <p><a href="/">Ana Sayfaya Geri Dön</a></p>
+</body>
+</html>

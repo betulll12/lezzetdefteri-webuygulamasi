@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    
+    <header>
+        <nav>
+            <a href="/">Ana Sayfa</a> |
+            {% if user.is_authenticated %}
+                Merhaba, {{ user.username }}! |
+                <a href="{% url 'tarif_ekle' %}">Tarif Ekle</a> |
+                <a href="{% url 'cikis' %}">Çıkış Yap</a>
+            {% else %}
+                <a href="{% url 'giris' %}">Giriş Yap</a> |
+                <a href="{% url 'kayit_ol' %}">Kayıt Ol</a>
+            {% endif %}
+        </nav>
+        <hr>
+    </header>
+
+
+    <h1>{{ sayfa_basligi }}</h1>
+
+    {% for tarif in tarifler %}
+        <div>
+            <h2>
+                <a href="{% url 'tarif_detay' tarif.pk %}">{{ tarif.baslik }}</a> 
+            </h2>
+            
+            <p>Hazırlama: {{ tarif.hazirlama_suresi }} dk | Pişme: {{ tarif.pisme_suresi }} dk</p>
+            <p>{{ tarif.aciklama|truncatechars:100 }}</p>
+        </div>
+        <hr>
+    {% empty %}
+        <p>Henüz sisteme eklenmiş bir tarif bulunmamaktadır. Admin panelinden ekleyebilirsiniz.</p>
+    {% endfor %}
+
+</body>
+</html>

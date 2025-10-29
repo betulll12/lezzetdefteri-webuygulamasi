@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tarif.baslik }} - Detay</title>
+</head>
+<body>
+    <a href="/">Ana Sayfaya Geri Dön</a>
+
+    <h1>{{ tarif.baslik }}</h1>
+
+    <p><strong>Yazar:</strong> {{ tarif.yazar.username }}</p>
+    
+    <p><strong>Hazırlama Süresi:</strong> {{ tarif.hazirlama_suresi }} dk</p>
+    <p><strong>Pişme Süresi:</strong> {{ tarif.pisme_suresi }} dk</p>
+    <p><strong>Porsiyon Sayısı:</strong> {{ tarif.porsiyon_sayisi }}</p>
+    
+    <h2>Malzemeler</h2>
+    <pre>{{ tarif.malzemeler }}</pre>
+    
+    <h2>Hazırlanışı</h2>
+    <p>{{ tarif.aciklama }}</p>
+
+    <hr>
+    <small>Yayınlanma Tarihi: {{ tarif.yayinlanma_tarihi|date:"d M Y H:i" }}</small>
+
+</body>
+</html>

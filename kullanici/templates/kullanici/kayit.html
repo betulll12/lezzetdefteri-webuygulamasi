@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>Yeni Üyelik Oluştur</h1>
+    
+    <form method="post">
+        {% csrf_token %} 
+        {{ form.as_p }} 
+        <button type="submit">Kayıt Ol</button>
+    </form>
+
+    <p>Zaten hesabınız var mı? <a href="#">Giriş Yap</a></p>
+    <p><a href="/">Ana Sayfaya Geri Dön</a></p>
+</body>
+</html>
