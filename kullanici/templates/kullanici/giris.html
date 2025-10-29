@@ -1,21 +1,38 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>Giriş Yap</title>
-</head>
-<body>
-    <h1>Giriş Yap</h1>
-    
-    <form method="post">
-        {% csrf_token %} 
-        
-        {{ form.as_p }} 
-        
-        <button type="submit">Giriş Yap</button>
-    </form>
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white text-center">
+                    <h1 class="h4 card-title mb-0">Hesabınıza Giriş Yapın</h1>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            Kullanıcı adı veya şifre hatalı. Lütfen kontrol ediniz.
+                        </div>
+                    {% endif %}
 
-    <p>Hesabınız yok mu? <a href="{% url 'kayit_ol' %}">Kayıt Ol</a></p>
-    <p><a href="/">Ana Sayfaya Geri Dön</a></p>
-</body>
-</html>
+                    <form method="post">
+                        {% csrf_token %} 
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field | add_class:"form-control" }}
+                            </div>
+                        {% endfor %}
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Giriş Yap</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-1">Hesabınız yok mu? <a href="{% url 'kayit_ol' %}" class="btn btn-link p-0">Kayıt Ol</a></p>
+                    <p class="mb-0"><a href="{% url 'anasayfa' %}" class="btn btn-link p-0">Ana Sayfaya Geri Dön</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

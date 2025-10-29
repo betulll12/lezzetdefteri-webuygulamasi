@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="alert alert-danger text-center shadow-lg p-5">
+                <h1 class="alert-heading display-4 mb-3">Tarif Silme Onayı</h1>
+                
+                <p class="lead">Bu tarifi <strong>"{{ tarif.baslik }}"</strong> silmek istediğinizden emin misiniz?</p>
+                <p>Bu işlem kalıcıdır ve **geri alınamaz**.</p>
+                
+                <hr class="my-4">
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg me-3">
+                        <i class="bi bi-trash"></i> Evet, Sil
+                    </button>
+                    <a href="{% url 'tarif_detay' pk=tarif.pk %}" class="btn btn-secondary btn-lg">
+                        Vazgeç
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

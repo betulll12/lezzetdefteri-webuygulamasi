@@ -1,28 +1,41 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ tarif.baslik }} - Detay</title>
-</head>
-<body>
-    <a href="/">Ana Sayfaya Geri Dön</a>
+{% extends "base.html" %}
 
-    <h1>{{ tarif.baslik }}</h1>
+{% block content %}
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <h1 class="display-4 mb-4">{{ tarif.baslik }}</h1>
+            
+            <p class="text-muted">
+                Yazar: <strong>{{ tarif.yazar.username }}</strong> | Yayınlanma Tarihi: {{ tarif.yayinlanma_tarihi|date:"d M Y H:i" }}
+            </p>
 
-    <p><strong>Yazar:</strong> {{ tarif.yazar.username }}</p>
-    
-    <p><strong>Hazırlama Süresi:</strong> {{ tarif.hazirlama_suresi }} dk</p>
-    <p><strong>Pişme Süresi:</strong> {{ tarif.pisme_suresi }} dk</p>
-    <p><strong>Porsiyon Sayısı:</strong> {{ tarif.porsiyon_sayisi }}</p>
-    
-    <h2>Malzemeler</h2>
-    <pre>{{ tarif.malzemeler }}</pre>
-    
-    <h2>Hazırlanışı</h2>
-    <p>{{ tarif.aciklama }}</p>
+            {% if tarif.yazar == user %}
+                <div class="mb-4">
+                    <a href="{% url 'tarif_duzenle' pk=tarif.pk %}" class="btn btn-warning btn-sm">Bu Tarifi Düzenle</a>
+                    <a href="{% url 'tarif_sil' pk=tarif.pk %}" class="btn btn-danger btn-sm">Bu Tarifi Sil</a>
+                </div>
+            {% endif %}
 
-    <hr>
-    <small>Yayınlanma Tarihi: {{ tarif.yayinlanma_tarihi|date:"d M Y H:i" }}</small>
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="alert alert-info py-2 text-center">Hazırlama Süresi: <strong>{{ tarif.hazirlama_suresi }} dk</strong></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert alert-info py-2 text-center">Pişme Süresi: <strong>{{ tarif.pisme_suresi }} dk</strong></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert alert-info py-2 text-center">Porsiyon: <strong>{{ tarif.porsiyon_sayisi }} Kişilik</strong></div>
+                </div>
+            </div>
 
-</body>
-</html>
+            <h2 class="h4 mt-4">Malzemeler</h2>
+            <div class="card card-body bg-light mb-4">
+                <pre class="mb-0">{{ tarif.malzemeler }}</pre>
+            </div>
+            
+            <h2 class="h4">Hazırlanışı</h2>
+            <p class="lead">{{ tarif.aciklama|linebreaksbr }}</p>
+            
+        </div>
+    </div>
+{% endblock content %}
