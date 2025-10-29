@@ -1,7 +1,8 @@
-# tarifler/forms.py - GÜNCEL KOD (Bootstrap form stilleri eklendi)
+# tarifler/forms.py - GÜNCEL KOD
 
 from django import forms
-from .models import Tarif
+# Yorum modelini import etmeyi unutmayın
+from .models import Tarif, Yorum 
 
 class TarifEkleForm(forms.ModelForm):
     class Meta:
@@ -29,3 +30,22 @@ class TarifEkleForm(forms.ModelForm):
             # Özellikle büyük metin kutularının (Textarea) satır sayısını ayarla
             if isinstance(field.widget, forms.Textarea):
                 field.widget.attrs['rows'] = 5
+
+
+# YENİ EKLENEN SINIF: Yorum Formu
+class YorumForm(forms.ModelForm):
+    # Formdaki 'icerik' alanının yer tutucusunu (placeholder) değiştirelim
+    icerik = forms.CharField(
+        widget=forms.Textarea(attrs={'placeholder': 'Yorumunuzu buraya yazın...', 'rows': 4}),
+        label='Yorumunuz'
+    )
+    
+    class Meta:
+        model = Yorum
+        # Sadece yorum içeriğini kullanıcıdan almamız yeterli
+        fields = ('icerik',)
+        
+    # Yorum formuna da Bootstrap form-control sınıfını ekleyelim
+    def __init__(self, *args, **kwargs):
+        super(YorumForm, self).__init__(*args, **kwargs)
+        self.fields['icerik'].widget.attrs['class'] = 'form-control'

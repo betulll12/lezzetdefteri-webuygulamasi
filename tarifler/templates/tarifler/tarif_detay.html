@@ -9,8 +9,25 @@
                 Yazar: <strong>{{ tarif.yazar.username }}</strong> | Yayınlanma Tarihi: {{ tarif.yayinlanma_tarihi|date:"d M Y H:i" }}
             </p>
 
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'favori_ekle_kaldir' tarif_id=tarif.pk %}" class="d-inline me-3">
+                    {% csrf_token %}
+                    
+                    {% if is_favori %}
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="fas fa-heart"></i> Favorilerden Kaldır
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="far fa-heart"></i> Favorilere Ekle
+                        </button>
+                    {% endif %}
+                    
+                </form>
+            {% endif %}
+            
             {% if tarif.yazar == user %}
-                <div class="mb-4">
+                <div class="mb-4 d-inline">
                     <a href="{% url 'tarif_duzenle' pk=tarif.pk %}" class="btn btn-warning btn-sm">Bu Tarifi Düzenle</a>
                     <a href="{% url 'tarif_sil' pk=tarif.pk %}" class="btn btn-danger btn-sm">Bu Tarifi Sil</a>
                 </div>
@@ -35,7 +52,46 @@
             
             <h2 class="h4">Hazırlanışı</h2>
             <p class="lead">{{ tarif.aciklama|linebreaksbr }}</p>
+
             
-        </div>
+            <hr class="my-5">
+            <h2 class="h4 mb-4">Yorumlar ({{ yorumlar.count }})</h2>
+
+            {% if user.is_authenticated %}
+                <div class="card card-body bg-light mb-5">
+                    <h5 class="card-title">Yorum Yap</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ yorum_formu.as_p }} 
+                        <button type="submit" class="btn btn-success mt-2">Yorumu Gönder</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-center mb-5">
+                    Yorum yapabilmek için lütfen <a href="{% url 'giris' %}" class="alert-link">Giriş Yapın</a>.
+                </div>
+            {% endif %}
+
+
+            <div class="yorum-listesi">
+                {% if yorumlar %}
+                    {% for yorum in yorumlar %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    <i class="fas fa-user-circle"></i> <strong>{{ yorum.yazar.username }}</strong>
+                                    <small class="float-end">{{ yorum.olusturma_tarihi|date:"d M Y H:i" }}</small>
+                                </h6>
+                                <p class="card-text">{{ yorum.icerik|linebreaksbr }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-secondary">
+                        Bu tarif için henüz bir yorum yapılmamıştır. İlk yorumu siz yapın!
+                    </div>
+                {% endif %}
+            </div>
+            </div>
     </div>
 {% endblock content %}

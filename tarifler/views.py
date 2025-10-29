@@ -2,19 +2,63 @@
 
 from django.shortcuts import render, get_object_or_404, redirect 
 from django.contrib.auth.decorators import login_required 
-from .models import Tarif
-from .forms import TarifEkleForm 
+from django.contrib import messages 
+from .models import Tarif, Favori, Yorum 
+from .forms import TarifEkleForm, YorumForm 
 
-# Var olan tarif_detay fonksiyonu (URL'deki <int:pk> ile uyumlu hale getirildi)
+# GÜNCELLENEN FONKSİYON: Tarif Detay Sayfası
 def tarif_detay(request, pk):
     tarif = get_object_or_404(Tarif, pk=pk)
+    is_favori = False
+    
+    # 1. Favori kontrolü
+    if request.user.is_authenticated:
+        if Favori.objects.filter(kullanici=request.user, tarif=tarif).exists():
+            is_favori = True
+
+    # 2. Yorum Formu ve İşlemi (Aynı URL'e POST yapıyoruz)
+    if request.method == 'POST':
+        # Sadece giriş yapmış kullanıcılar yorum yapabilir
+        if not request.user.is_authenticated:
+            messages.error(request, "Yorum yapabilmek için lütfen giriş yapın.")
+            return redirect('giris')
+            
+        # Yorum formundan gelen POST verisini kontrol et
+        # Eğer bu POST isteği favori butonu değilse, yorum formu olarak işle
+        if 'icerik' in request.POST:
+            form = YorumForm(request.POST)
+            if form.is_valid():
+                yeni_yorum = form.save(commit=False)
+                yeni_yorum.tarif = tarif
+                yeni_yorum.yazar = request.user
+                yeni_yorum.save()
+                
+                messages.success(request, "Yorumunuz başarıyla eklendi.")
+                
+                # Sayfayı yenilemeden hemen sonra yorumu göstermek için redirect
+                return redirect('tarif_detay', pk=tarif.pk)
+        
+        # NOT: Eğer POST isteği favori butonu ise (csrf_token ve hidden input olmadan),
+        # form kontrolü atlanıp aşağıdaki GET/Context bloğuna geçecektir.
+
+    else:
+        # GET isteği ise boş formu göster
+        form = YorumForm()
+
+    # 3. Yorumları Listeleme
+    yorumlar = tarif.yorumlar.all() # Modeldeki related_name='yorumlar' ile çekiliyor
+
     context = {
         'tarif': tarif,
+        'is_favori': is_favori,
+        'yorumlar': yorumlar,
+        'yorum_formu': form,
         'title': tarif.baslik,
     }
     return render(request, 'tarifler/tarif_detay.html', context)
 
-# Tarif Ekleme fonksiyonu (URL'deki <int:pk> ile uyumlu hale getirildi)
+
+# EKSİK OLAN FONKSİYON 1: Tarif Ekleme
 @login_required(login_url='/kullanici/giris/')
 def tarif_ekle(request):
     if request.method == 'POST':
@@ -23,7 +67,7 @@ def tarif_ekle(request):
             tarif = form.save(commit=False)
             tarif.yazar = request.user 
             tarif.save()
-            # Yönlendirme, URL'deki 'pk' parametresini kullanacak şekilde güncellendi
+            messages.success(request, "Tarif başarıyla eklendi!")
             return redirect('tarif_detay', pk=tarif.pk) 
     else:
         form = TarifEkleForm()
@@ -35,43 +79,66 @@ def tarif_ekle(request):
     return render(request, 'tarifler/tarif_ekle.html', context)
 
 
-# YENİ EKLENEN FONKSİYON: Tarifi Düzenleme
+# EKSİK OLAN FONKSİYON 2: Tarifi Düzenleme
 @login_required
 def tarif_duzenle(request, pk):
-    # pk (primary key) ile tarife ulaş
     tarif = get_object_or_404(Tarif, pk=pk)
     
-    # GÜVENLİK KONTROLÜ: Sadece tarifi oluşturan kullanıcı düzenleyebilir
+    # GÜVENLİK KONTROLÜ
     if tarif.yazar != request.user:
+        messages.error(request, "Bu tarifi düzenleme yetkiniz yok.")
         return redirect('tarif_detay', pk=pk) 
 
     if request.method == 'POST':
         form = TarifEkleForm(request.POST, instance=tarif)
         if form.is_valid():
             form.save()
+            messages.success(request, "Tarif başarıyla güncellendi.")
             return redirect('tarif_detay', pk=tarif.pk)
     else:
-        # Sayfa ilk açıldığında, formun içini mevcut verilerle doldur
         form = TarifEkleForm(instance=tarif)
     
-    # Düzenleme için de tarif_ekle.html şablonunu kullanıyoruz
     return render(request, 'tarifler/tarif_ekle.html', {'form': form, 'title': 'Tarifi Düzenle'})
 
 
-# YENİ EKLENEN FONKSİYON: Tarifi Silme
+# EKSİK OLAN FONKSİYON 3: Tarifi Silme
 @login_required
 def tarif_sil(request, pk):
-    # pk ile tarife ulaş
     tarif = get_object_or_404(Tarif, pk=pk)
     
-    # GÜVENLİK KONTROLÜ: Sadece tarifi oluşturan kullanıcı silebilir
+    # GÜVENLİK KONTROLÜ
     if tarif.yazar != request.user:
+        messages.error(request, "Bu tarifi silme yetkiniz yok.")
         return redirect('tarif_detay', pk=pk) 
         
-    # Kullanıcıdan silme onayı geldiyse
     if request.method == 'POST':
-        tarif.delete() # Tarifi sil
-        return redirect('/') # Ana sayfaya yönlendir
+        tarif.delete() 
+        messages.success(request, "Tarif başarıyla silindi.")
+        return redirect('anasayfa') # Ana sayfaya yönlendir
     
-    # POST gelmediyse, silme onay sayfasını göster
     return render(request, 'tarifler/tarif_sil.html', {'tarif': tarif, 'title': 'Tarifi Sil'})
+
+
+# EKSİK OLAN FONKSİYON 4: FAVORİ FONKSİYONU
+@login_required 
+def favori_ekle_kaldir(request, tarif_id):
+    """
+    Bir tarife favori ekler veya var olan favoriyi kaldırır.
+    """
+    if request.method == 'POST':
+        tarif = get_object_or_404(Tarif, id=tarif_id)
+        
+        favori_var_mi = Favori.objects.filter(kullanici=request.user, tarif=tarif).exists()
+        
+        if favori_var_mi:
+            Favori.objects.filter(kullanici=request.user, tarif=tarif).delete()
+            messages.info(request, "Favorilerden kaldırıldı.")
+        else:
+            Favori.objects.create(kullanici=request.user, tarif=tarif)
+            messages.success(request, "Favorilere eklendi!")
+            
+        # Kullanıcının geldiği sayfaya yönlendir
+        return redirect(request.META.get('HTTP_REFERER', 'anasayfa'))
+        
+    # POST isteği değilse
+    return redirect('anasayfa')

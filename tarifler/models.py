@@ -1,6 +1,7 @@
 # tarifler/models.py
+
 from django.db import models
-from django.contrib.auth.models import User  # YENİ IMPORT: Kullanıcı modelini çekiyoruz
+from django.contrib.auth.models import User 
 
 class Tarif(models.Model):
     # Temel Tarif Alanları
@@ -15,10 +16,7 @@ class Tarif(models.Model):
     yayinlanma_tarihi = models.DateTimeField(auto_now_add=True)
     guncelleme_tarihi = models.DateTimeField(auto_now=True)
     
-    # YENİ EKLENEN SATIR:
     # Tarifin kim tarafından eklendiğini tutar. 
-    # models.CASCADE: Kullanıcı silinirse, onun tüm tarifleri de silinir.
-    # default=1: Mevcut tariflere (Admin'den eklenenlere) varsayılan olarak ID'si 1 olan kullanıcıyı atar.
     yazar = models.ForeignKey(User, on_delete=models.CASCADE, default=1) 
 
     class Meta:
@@ -28,3 +26,44 @@ class Tarif(models.Model):
 
     def __str__(self):
         return self.baslik
+    
+# YENİ EKLENEN FAVORİ MODELİ
+class Favori(models.Model):
+    """
+    Kullanıcının hangi tarifi favorilere eklediğini tutan model.
+    """
+    # Hangi kullanıcı favori ekledi?
+    kullanici = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Hangi tarife favori eklendi?
+    tarif = models.ForeignKey(Tarif, on_delete=models.CASCADE)
+    
+    # Aynı kullanıcının aynı tarifi iki kez favorilere eklemesini engeller.
+    class Meta:
+        unique_together = ('kullanici', 'tarif')
+        verbose_name_plural = "Favoriler"
+        
+    def __str__(self):
+        return f'{self.kullanici.username} favorilere ekledi: {self.tarif.baslik}'
+    # YENİ EKLENEN MODEL: Yorum
+class Yorum(models.Model):
+    # Hangi kullanıcı yorum yaptı
+    yazar = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Hangi tarife yorum yapıldı (Tarif silinirse yorumlar da silinsin)
+    tarif = models.ForeignKey(Tarif, on_delete=models.CASCADE, related_name='yorumlar')
+    
+    # Yorumun içeriği
+    icerik = models.TextField()
+    
+    # Yorumun ne zaman yapıldığı
+    olusturma_tarihi = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Yorum"
+        verbose_name_plural = "Yorumlar"
+        # Yorumları en yenisi en üstte olacak şekilde sırala
+        ordering = ['-olusturma_tarihi'] 
+
+    def __str__(self):
+        return f'{self.yazar.username} - {self.tarif.baslik[:20]}'
